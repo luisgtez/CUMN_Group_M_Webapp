@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="breed-detail-container">
+    <div class="breed-detail-header">
+        <a href="/" class="back-button">&larr; Back to all breeds</a>
+        <h1>{{ breed.name }}</h1>
+    </div>
+
+    <div class="breed-detail-content">
+        <div class="breed-detail-image">
+            {% if image_url %}
+            <img src="{{ image_url }}" alt="{{ breed.name }}">
+            {% else %}
+            <div class="no-image-large">No image available</div>
+            {% endif %}
+        </div>
+
+        <div class="breed-detail-info">
+            <div class="info-section">
+                <h2>Breed Information</h2>
+                <table class="info-table">
+                    {% if breed.bred_for %}
+                    <tr>
+                        <th>Bred For</th>
+                        <td>{{ breed.bred_for }}</td>
+                    </tr>
+                    {% endif %}
+
+                    {% if breed.breed_group %}
+                    <tr>
+                        <th>Breed Group</th>
+                        <td>{{ breed.breed_group }}</td>
+                    </tr>
+                    {% endif %}
+
+                    {% if breed.life_span %}
+                    <tr>
+                        <th>Life Span</th>
+                        <td>{{ breed.life_span }}</td>
+                    </tr>
+                    {% endif %}
+
+                    {% if breed.origin %}
+                    <tr>
+                        <th>Origin</th>
+                        <td>{{ breed.origin }}</td>
+                    </tr>
+                    {% endif %}
+
+                    {% if breed.temperament %}
+                    <tr>
+                        <th>Temperament</th>
+                        <td>{{ breed.temperament }}</td>
+                    </tr>
+                    {% endif %}
+                </table>
+            </div>
+
+            {% if breed.weight or breed.height %}
+            <div class="info-section">
+                <h2>Physical Characteristics</h2>
+                <table class="info-table">
+                    {% if breed.weight.metric %}
+                    <tr>
+                        <th>Weight</th>
+                        <td>{{ breed.weight.metric }} kg</td>
+                    </tr>
+                    {% endif %}
+
+                    {% if breed.height.metric %}
+                    <tr>
+                        <th>Height</th>
+                        <td>{{ breed.height.metric }} cm</td>
+                    </tr>
+                    {% endif %}
+                </table>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
