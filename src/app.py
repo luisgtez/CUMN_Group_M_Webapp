@@ -1,17 +1,52 @@
 import threading
 import time
+import os
+import logging
 
 import requests
-from flask import Flask, jsonify, render_template
+from flask import Flask, jsonify, render_template, send_from_directory
 
 # Configuration
 API_URL = "https://api.thedogapi.com/v1"
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder="static")
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Cache dictionaries with timestamps
 breeds_cache = {"data": None, "timestamp": 0, "is_fetching": False}
 image_cache = {}
+
+# Available 3D models for breeds
+BREED_MODELS = {
+    "labrador": "labrador.glb",
+    "german shepherd": "german_shepherd.glb",
+    "golden retriever": "golden_retriever.glb",
+    "akita": "akita.glb",
+    # Add more breed-model mappings as you get them
+}
+
+DEFAULT_MODEL = "model.glb"  # Fallback model
+
+
+def get_breed_model(breed_name):
+    """Get the appropriate 3D model for a breed"""
+    # Convert breed name to lowercase for case-insensitive matching
+    breed_name = breed_name.lower()
+
+    # Check if we have a specific model for this breed
+    if breed_name in BREED_MODELS:
+        model_path = f"dog/{BREED_MODELS[breed_name]}"
+        # Check if the specific model exists
+        if os.path.exists(os.path.join("models", model_path)):
+            logger.info(f"Found model for {breed_name}: {model_path}")
+            return model_path
+
+    # Return default model if no specific model exists
+    logger.info(f"No model found for {breed_name}, using default model")
+    return f"dog/{DEFAULT_MODEL}"
 
 
 def fetch_dog_breeds_background():
@@ -83,7 +118,7 @@ def get_breed_image(image_id):
 @app.route("/")
 def index():
     """Main route to display dog breeds"""
-    print("Fetching dog breeds...")
+    logger.info("Fetching dog breeds...")
     breeds = get_dog_breeds()
     breed_data = []
 
@@ -132,7 +167,18 @@ def breed_detail(breed_id):
         if image_data and "url" in image_data:
             image_url = image_data["url"]
 
-    return render_template("breed_detail.html", breed=breed, image_url=image_url)
+    # Get the appropriate 3D model for this breed
+    model_path = get_breed_model(breed["name"])
+
+    return render_template(
+        "breed_detail.html", breed=breed, image_url=image_url, model_path=model_path
+    )
+
+
+@app.route("/models/<path:filename>")
+def serve_model(filename):
+    """Serve 3D model files from the models directory"""
+    return send_from_directory("models", filename)
 
 
 @app.errorhandler(404)
@@ -141,5 +187,5 @@ def page_not_found(e):
 
 
 if __name__ == "__main__":
-    print("Starting Flask server...")
+    logger.info("Starting Flask server...")
     app.run(debug=False, port=5050, host="0.0.0.0")
